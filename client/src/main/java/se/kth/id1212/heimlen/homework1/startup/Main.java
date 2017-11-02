@@ -15,5 +15,16 @@ public class Main {
         Scanner in = new Scanner(System.in);
         String input = in.next();
         view.sendInput(input);
+
+
+        /*
+        String s = "hello";
+        String c = "hel lo";
+
+        if(s.contains(c)) {
+            System.out.println("The String " + s + " contains " + c + " :D");
+        } else {
+            System.out.println("The String " + s + " does not contain " + c + " :(");
+        }*/
     }
 }

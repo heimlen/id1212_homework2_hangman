@@ -3,8 +3,6 @@ package se.kth.id1212.heimlen.homework1.model;
 import jdk.internal.util.xml.impl.Input;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -20,7 +18,7 @@ public class ServerConnector {
     private PrintWriter streamToServer;
 
     /**
-     * Method that connects to the server provided the host adress and port
+     * Method that connects to the server provided the host address and port
      * @param host the ip adress to connect to
      * @param port the port to connect to
      * @throws IOException if fails to connect
