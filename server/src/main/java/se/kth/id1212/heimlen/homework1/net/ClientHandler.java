@@ -40,14 +40,14 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
-
         //TODO something wrong here, it succesfully starts different threads for each client, however the server throws a
         //TODO NoSuchElementException after one entry, it seems like fromClient.next() tries to read an entry and when it
         //TODO fails it crashes, which leads to client process exit, or rather the client is "done" fix this
         while (connected) {
-            String clientInput = fromClient.next();
-            controller.sendInput(clientInput);
+            if(fromClient.hasNext()) {
+                String clientInput = fromClient.next();
+                controller.sendInput(clientInput);
+            }
         }
     }
 }

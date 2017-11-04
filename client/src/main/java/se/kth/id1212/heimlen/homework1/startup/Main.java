@@ -10,13 +10,14 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        View view = new View();
-        view.welcomeMsg();
-        view.startServer("127.0.0.1", 51234);
-        Scanner in = new Scanner(System.in);
-        String input = in.next();
-        view.sendInput(input);
-
+            View view = new View();
+            view.welcomeMsg();
+            view.startServer("127.0.0.1", 51234);
+            Scanner in = new Scanner(System.in);
+            while(true) {
+            String input = in.next();
+            view.sendInput(input);
+        }
 
         /*
         String s = "hello";

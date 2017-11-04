@@ -13,6 +13,7 @@ public class WordHandler {
 
     public WordHandler() {
         //TODO randomly chose a word from a list of words.
+        System.out.println("in wordHandler constructor");
         chosenWordLength = chosenWord.length();
         triesRemaining = chosenWordLength;
         maskedWord = new String(new char[chosenWordLength]).replace('\0', '_');
@@ -25,6 +26,7 @@ public class WordHandler {
      * If user guess is not in chosen chosenWord, decrement # of guesses and inform user.
      */
     public void controlInput(String input) {
+        System.out.println("in controlInput before input check");
         if(input.length() == 1) {
             char inputChar = input.charAt(0);
             for(int i = 0; i < chosenWordLength; i++) {
@@ -33,7 +35,7 @@ public class WordHandler {
                 }
             }
             triesRemaining--;
-            System.out.println("The new word now is " + maskedWord);
+            System.out.println("The new word now is " + maskedWord + " and " + triesRemaining + " tries remain!");
         } else if(input.length() == chosenWordLength) {
             if(containsInput(input)) {
               maskedWord = chosenWord;

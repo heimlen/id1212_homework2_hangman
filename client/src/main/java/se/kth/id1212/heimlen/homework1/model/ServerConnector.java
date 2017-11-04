@@ -24,6 +24,7 @@ public class ServerConnector {
      * @throws IOException if fails to connect
      */
     public void connectToServer(String host, int port) throws IOException {
+        System.out.println("in serverconnector");
         socket = new Socket();
         socket.connect(new InetSocketAddress(host, port), TIMEOUT_20_SECONDS);
         streamFromServer = new Scanner(socket.getInputStream());
@@ -38,6 +39,5 @@ public class ServerConnector {
     public void sendInput(String input) {
        streamToServer.print(input);
        streamToServer.flush();
-     //   System.out.println("Message " + input + " delivered from SrvConn to Server");
     }
 }
