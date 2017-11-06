@@ -44,10 +44,8 @@ public class ClientHandler implements Runnable {
         //TODO NoSuchElementException after one entry, it seems like fromClient.next() tries to read an entry and when it
         //TODO fails it crashes, which leads to client process exit, or rather the client is "done" fix this
         while (connected) {
-            if(fromClient.hasNext()) {
-                String clientInput = fromClient.next();
+                String clientInput = fromClient.nextLine();
                 controller.sendInput(clientInput);
-            }
         }
     }
 }

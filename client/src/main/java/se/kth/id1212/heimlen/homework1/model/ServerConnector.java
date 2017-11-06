@@ -16,6 +16,7 @@ public class ServerConnector {
     private static final int TIMEOUT_20_SECONDS = 20000;
     private Scanner streamFromServer;
     private PrintWriter streamToServer;
+    private boolean connected;
 
     /**
      * Method that connects to the server provided the host address and port.
@@ -39,5 +40,11 @@ public class ServerConnector {
     public void sendInput(String input) {
        streamToServer.print(input);
        streamToServer.flush();
+    }
+
+    public void disconnect() throws IOException {
+    socket.close();
+    socket = null;
+    connected = false;
     }
 }

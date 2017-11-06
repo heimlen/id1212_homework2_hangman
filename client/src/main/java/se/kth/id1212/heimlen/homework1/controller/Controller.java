@@ -26,4 +26,8 @@ public class Controller {
             throw new UncheckedIOException(e);
         }
     }
+
+    public void disconnect() {
+        serverConnector.disconnect();
+    }
 }

@@ -26,7 +26,7 @@ public class View {
      * @param host the ip address of the host
      * @param port the port the server resides on
      */
-    public void startServer(String host, int port) {
+    public void connectToServer(String host, int port) {
         controller.connectToServer(host, port);
     }
 
