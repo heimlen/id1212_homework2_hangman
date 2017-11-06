@@ -27,7 +27,7 @@ public class Controller {
         }
     }
 
-    public void disconnect() {
+    public void disconnect() throws IOException {
         serverConnector.disconnect();
     }
 }
