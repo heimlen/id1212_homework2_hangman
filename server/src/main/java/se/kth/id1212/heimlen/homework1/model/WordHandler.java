@@ -1,5 +1,13 @@
 package se.kth.id1212.heimlen.homework1.model;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 /**
  * This class randomly chooses a word from a wordlist and then takes input in form of letters or words, and tries to
  * match the input with the chosen chosenWord. The class holds all logic to calculate the # of tries left, as well as what
@@ -7,46 +15,80 @@ package se.kth.id1212.heimlen.homework1.model;
  * */
 public class WordHandler {
     private int triesRemaining;
-    private final String chosenWord = "halebop";
+    private static final int INITIAL_SCORE = 0;
+    private int score;
+    private static final String PATH = "common/words.txt";
+    private static List<String> randomWords;
+    private String chosenWord;
     private int chosenWordLength;
     private String maskedWord;
 
     public WordHandler() {
         //TODO randomly chose a word from a list of words.
-        System.out.println("in wordHandler constructor");
-        chosenWordLength = chosenWord.length();
-        triesRemaining = chosenWordLength;
+        score = INITIAL_SCORE;
+        loadWords();
+        chooseWord();
+        createMaskedWord();
+    }
+
+    private void createMaskedWord() {
         maskedWord = new String(new char[chosenWordLength]).replace('\0', '_');
     }
 
-    /**
+    private void loadWords() {
+        try {
+            BufferedReader reader = Files.newBufferedReader(Paths.get(PATH));
+            randomWords = new ArrayList<>();
+            while (reader.readLine() != null) {
+                randomWords.add(reader.readLine());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void chooseWord() {
+        Random rnd = new Random();
+        chosenWord = randomWords.get(rnd.nextInt(randomWords.size()));
+        chosenWordLength = chosenWord.length();
+        triesRemaining = chosenWordLength;
+    }
+
+        /**
      * This method compares the users guess against the chosen chosenWord.
      * If chosen chosenWord contains users guess, return the updated layout of the chosenWord with the guess added.
      * If user guesses for the correct chosenWord, return updated layout and finish game.
      * If user guess is not in chosen chosenWord, decrement # of guesses and inform user.
      */
     public void controlInput(String input) {
-        System.out.println("in controlInput before input check");
-        if(input.length() == 1) {
-            char inputChar = input.charAt(0);
-            for(int i = 0; i < chosenWordLength; i++) {
-                if(inputChar == chosenWord.charAt(i)) {
-                    replaceAt(maskedWord, inputChar, i);
+        if (chosenWord.contains(input)) {
+            if (input.length() == 1) {
+                char inputChar = input.charAt(0);
+                for (int i = 0; i < chosenWordLength; i++) {
+                    if (inputChar == chosenWord.charAt(i)) {
+                        replaceAt(maskedWord, inputChar, i);
+                    }
                 }
-            }
-            triesRemaining--;
-            System.out.println("The new word now is " + maskedWord + " and " + triesRemaining + " tries remain!");
-        } else if(input.length() == chosenWordLength) {
-            if(containsInput(input)) {
-              maskedWord = chosenWord;
-              triesRemaining--;
-              System.out.println("Congratz, you found the word with " + triesRemaining + " tries left!");
-            }
-            triesRemaining--;
-            System.out.println("That was not correct! Tries remaining: " + triesRemaining);
+                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining + " tries remain!");
+            } else if (input.length() == chosenWordLength) {
+                    System.out.println("Congratz, you found the chosen word " + chosenWord + " with " + triesRemaining + " tries left!");
+                    loadNewWord();
+                }
         } else {
-            System.out.println("Please guess either a letter or the entire word, no cheatzy doodle!");
+            if (input.length() == 1) {
+                --triesRemaining;
+                System.out.println("That character is not in the word!");
+                System.out.println("The word now looks like this " + maskedWord + "and " + triesRemaining+ " tries remaining!");
+            } else {
+                --triesRemaining;
+                System.out.println("That was not the word searched for! " + triesRemaining + " tries remaining!");
+                System.out.println("The word now looks like this " + maskedWord + "and " + triesRemaining+ " tries remaining!");
+            }
         }
+    }
+    private void loadNewWord() {
+        chooseWord();
+        System.out.println("You now have " + score + " points, and a new word has been added that looks like this " + maskedWord);
     }
 
     /**
@@ -60,9 +102,6 @@ public class WordHandler {
         sb.setCharAt(index, newChar);
         maskedWord = sb.toString();
     }
-
-    //TODO make sure this is enough to check all possible input. If not, add more checks to make sure both chars as well
-    //TODO as chosenWord guesses can be correctly handled
     private boolean containsInput(String input) {
         return chosenWord.contains(input);
     }

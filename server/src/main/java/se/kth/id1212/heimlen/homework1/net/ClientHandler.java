@@ -2,9 +2,7 @@ package se.kth.id1212.heimlen.homework1.net;
 
 import se.kth.id1212.heimlen.homework1.controller.Controller;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -15,7 +13,7 @@ public class ClientHandler implements Runnable {
     private Controller controller;
     private Server server;
     private Socket clientSocket;
-    private Scanner fromClient;
+    private BufferedReader fromClient;
     private PrintWriter toClient;
     private boolean connected;
 
@@ -35,17 +33,29 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            fromClient = new Scanner(clientSocket.getInputStream());
+            fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             toClient = new PrintWriter(clientSocket.getOutputStream());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        //TODO something wrong here, it succesfully starts different threads for each client, however the server throws a
-        //TODO NoSuchElementException after one entry, it seems like fromClient.next() tries to read an entry and when it
-        //TODO fails it crashes, which leads to client process exit, or rather the client is "done" fix this
         while (connected) {
-                String clientInput = fromClient.nextLine();
+            try {
+                //TODO SocketTimeoutException: Read timed out is thrown by the line below, figure out why and fix it!
+                String clientInput = fromClient.readLine();
                 controller.sendInput(clientInput);
+            } catch (IOException e) {
+                disconnectClient();
+                e.printStackTrace();
+            }
         }
+    }
+
+    private void disconnectClient() {
+        try {
+            clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        connected = false;
     }
 }

@@ -1,23 +1,19 @@
 package se.kth.id1212.heimlen.homework1.startup;
 
+import jdk.internal.util.xml.impl.Input;
+import se.kth.id1212.heimlen.homework1.view.InputInterpreter;
 import se.kth.id1212.heimlen.homework1.view.View;
 
 import java.util.Scanner;
 
 /**
- * Created by heimlen on 2017-11-02.
+ * The main method that starts the interpreter to be able to handle client input.
  */
 public class Main {
 
     public static void main(String[] args) {
-            View view = new View();
-            view.welcomeMsg();
-            view.connectToServer("127.0.0.1", 51234);
-            Scanner in = new Scanner(System.in);
-            while(true) {
-            String input = in.next();
-            view.sendInput(input);
-        }
+        new InputInterpreter().start();
+    }
 
         /*
         String s = "hello";
@@ -29,4 +25,3 @@ public class Main {
             System.out.println("The String " + s + " does not contain " + c + " :(");
         }*/
     }
-}

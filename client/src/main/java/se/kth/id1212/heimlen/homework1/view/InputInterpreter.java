@@ -4,6 +4,7 @@ import se.kth.id1212.heimlen.homework1.controller.Controller;
 import se.kth.id1212.heimlen.homework1.exceptions.BadFormattedInputException;
 import se.kth.id1212.heimlen.homework1.exceptions.UnknownCommandException;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -41,7 +42,8 @@ public class InputInterpreter implements Runnable {
                         controller.disconnect();
                         break;
                     case CONNECT :
-                        controller.connectToServer(userInput.getFirstParam(),Integer.parseInt(userInput.getSecondParam()));
+                        controller.connectToServer(userInput.getFirstParam()
+                                                  ,Integer.parseInt(userInput.getSecondParam()));
                         //TODO start a new instance of a consoleoutput aka the observer-pattern that is to be used
                         // to communicate with the client
                         break;
@@ -49,7 +51,7 @@ public class InputInterpreter implements Runnable {
                         controller.sendInput(userInput.getFirstParam());
                         break;
                 }
-            } catch (UnknownCommandException | BadFormattedInputException e) {
+            } catch (UnknownCommandException | BadFormattedInputException | IOException e) {
                 e.printStackTrace();
             }
         }

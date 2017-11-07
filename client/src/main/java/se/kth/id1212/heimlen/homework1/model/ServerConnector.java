@@ -1,8 +1,11 @@
 package se.kth.id1212.heimlen.homework1.model;
 
 import jdk.internal.util.xml.impl.Input;
+import org.omg.CORBA.TIMEOUT;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -14,7 +17,8 @@ import java.util.Scanner;
 public class ServerConnector {
     private Socket socket;
     private static final int TIMEOUT_20_SECONDS = 20000;
-    private Scanner streamFromServer;
+    private static final int TIMEOUT_30_MINUTES = 1800000;
+    private BufferedReader streamFromServer;
     private PrintWriter streamToServer;
     private boolean connected;
 
@@ -28,7 +32,9 @@ public class ServerConnector {
         System.out.println("in serverconnector");
         socket = new Socket();
         socket.connect(new InetSocketAddress(host, port), TIMEOUT_20_SECONDS);
-        streamFromServer = new Scanner(socket.getInputStream());
+        socket.setSoTimeout(TIMEOUT_30_MINUTES);
+        connected = true;
+        streamFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         streamToServer = new PrintWriter(socket.getOutputStream());
         //TODO Start a thread that contains a listener, that listens for incoming data from the server
     }
@@ -38,7 +44,8 @@ public class ServerConnector {
      * @param input the input to be sent to the server
      */
     public void sendInput(String input) {
-       streamToServer.print(input);
+        //TODO THIS FIXED THE ISSUE, CHANGING PRINT to PRINTLN .-.-.-.-.-.-
+       streamToServer.println(input);
        streamToServer.flush();
     }
 

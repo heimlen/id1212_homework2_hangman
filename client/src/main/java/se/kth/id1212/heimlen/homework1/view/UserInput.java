@@ -3,6 +3,9 @@ package se.kth.id1212.heimlen.homework1.view;
 import se.kth.id1212.heimlen.homework1.exceptions.BadFormattedInputException;
 import se.kth.id1212.heimlen.homework1.exceptions.UnknownCommandException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * This class represents one line of user input which much start with a valid user-command and then possibly take another parameter.
  * */
@@ -18,15 +21,20 @@ public class UserInput {
      */
     UserInput(String userInput) throws UnknownCommandException, BadFormattedInputException {
         this.enteredInput = userInput;
+        parameters = new String[3];
         splitInput(enteredInput);
         parseCommand(userCmd);
     }
 
     private void splitInput(String enteredInput) {
+        if(enteredInput == null) {
+            userCmd = null;
+            parameters = null;
+            return;
+        }
         String[] splitInput = enteredInput.split(PARAM_DELIMITER);
-        userCmd = splitInput[0];
-        parameters[0] = splitInput[1];
-        parameters[1] = splitInput[2];
+        userCmd = splitInput[0].toUpperCase();
+        parameters = Arrays.copyOfRange(splitInput,1,splitInput.length);
     }
 
     private void parseCommand(String userCmd) throws UnknownCommandException, BadFormattedInputException {
