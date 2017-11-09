@@ -1,15 +1,11 @@
 package se.kth.id1212.heimlen.homework1.model;
 
-import jdk.internal.util.xml.impl.Input;
-import org.omg.CORBA.TIMEOUT;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Scanner;
 
 /**
  * Method that connects the client to the server
@@ -44,7 +40,6 @@ public class ServerConnector {
      * @param input the input to be sent to the server
      */
     public void sendInput(String input) {
-        //TODO THIS FIXED THE ISSUE, CHANGING PRINT to PRINTLN .-.-.-.-.-.-
        streamToServer.println(input);
        streamToServer.flush();
     }

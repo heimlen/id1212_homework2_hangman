@@ -70,7 +70,7 @@ public class WordHandler {
                     }
                 }
                 System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining + " tries remain!");
-            } else if (input.length() == chosenWordLength) {
+            } else if (input.length() == chosenWordLength && chosenWord.contains(input)) {
                     System.out.println("Congratz, you found the chosen word " + chosenWord + " with " + triesRemaining + " tries left!");
                     loadNewWord();
                 }
@@ -78,16 +78,22 @@ public class WordHandler {
             if (input.length() == 1) {
                 --triesRemaining;
                 System.out.println("That character is not in the word!");
-                System.out.println("The word now looks like this " + maskedWord + "and " + triesRemaining+ " tries remaining!");
+                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining+ " tries remaining!");
             } else {
                 --triesRemaining;
                 System.out.println("That was not the word searched for! " + triesRemaining + " tries remaining!");
-                System.out.println("The word now looks like this " + maskedWord + "and " + triesRemaining+ " tries remaining!");
+                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining+ " tries remaining!");
             }
         }
+        if(triesRemaining == 0) {
+            System.out.println("Ah too bad, you ran out of tries, you should have entered " + chosenWord);
+            loadNewWord();
+        }
+
     }
     private void loadNewWord() {
         chooseWord();
+        createMaskedWord();
         System.out.println("You now have " + score + " points, and a new word has been added that looks like this " + maskedWord);
     }
 
@@ -102,8 +108,4 @@ public class WordHandler {
         sb.setCharAt(index, newChar);
         maskedWord = sb.toString();
     }
-    private boolean containsInput(String input) {
-        return chosenWord.contains(input);
-    }
-
 }

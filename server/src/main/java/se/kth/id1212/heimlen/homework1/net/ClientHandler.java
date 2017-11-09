@@ -41,6 +41,7 @@ public class ClientHandler implements Runnable {
         while (connected) {
             try {
                 //TODO SocketTimeoutException: Read timed out is thrown by the line below, figure out why and fix it!
+
                 String clientInput = fromClient.readLine();
                 controller.sendInput(clientInput);
             } catch (IOException e) {
