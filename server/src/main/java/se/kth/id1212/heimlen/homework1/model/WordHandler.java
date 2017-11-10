@@ -25,7 +25,6 @@ public class WordHandler {
     private String outputMsg;
 
     public WordHandler() {
-        //TODO randomly chose a word from a list of words.
         score = INITIAL_SCORE;
         loadWords();
         chooseWord();

@@ -60,20 +60,15 @@ public class UserInput {
         }
     }
 
-    public UserCommand getUserCommand() {
+    UserCommand getUserCommand() {
         return userCommand;
     }
 
-    public String getFirstParam() {
+    String getFirstParam() {
         return parameters[0];
     }
 
-    public String getSecondParam() {
+    String getSecondParam() {
         return parameters[1];
     }
-
-    //TODO Check if user should be able to/need to supply several parameters (connection ip and port??)
-    /*private void parseArgs(String parameter) {
-
-    }*/
 }
