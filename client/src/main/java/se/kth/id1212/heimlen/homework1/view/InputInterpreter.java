@@ -3,6 +3,7 @@ package se.kth.id1212.heimlen.homework1.view;
 import se.kth.id1212.heimlen.homework1.controller.Controller;
 import se.kth.id1212.heimlen.homework1.exceptions.BadFormattedInputException;
 import se.kth.id1212.heimlen.homework1.exceptions.UnknownCommandException;
+import se.kth.id1212.heimlen.homework1.model.OutputHandler;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -26,6 +27,7 @@ public class InputInterpreter implements Runnable {
         if (acceptingClientCommands) {
             return;
         }
+        System.out.println(welcomeMsg());
         acceptingClientCommands = true;
         controller = new Controller();
         new Thread(this).start();
@@ -42,17 +44,18 @@ public class InputInterpreter implements Runnable {
                         controller.disconnect();
                         break;
                     case CONNECT :
-                        controller.connectToServer(userInput.getFirstParam()
-                                                  ,Integer.parseInt(userInput.getSecondParam()));
-                        //TODO start a new instance of a consoleoutput aka the observer-pattern that is to be used
-                        // to communicate with the client
+                        controller.connectToServer(userInput.getFirstParam(),
+                                Integer.parseInt(userInput.getSecondParam()),
+                                new ServerOutput());
                         break;
                     case GUESS :
                         controller.sendInput(userInput.getFirstParam());
                         break;
                 }
-            } catch (UnknownCommandException | BadFormattedInputException | IOException e) {
+            } catch (UnknownCommandException | BadFormattedInputException e) {
                 e.printStackTrace();
+            } catch (IOException e) {
+                System.out.println("thanks for playing the game!");
             }
         }
     }
@@ -60,5 +63,21 @@ public class InputInterpreter implements Runnable {
     private String readNextLine() {
         msgOut.print(PROMPT);
         return clientInput.nextLine();
+    }
+
+    private class ServerOutput implements OutputHandler {
+        @Override
+        public void printServerOutput(String output) {
+            msgOut.println(output);
+            msgOut.print(PROMPT);
+
+        }
+    }
+
+    private String welcomeMsg() {
+        return "Welcome to the hangman game!\n" +
+                "please start off by connecting to a server, this is done by writing connect \"ip-adress\" \"port\"\n" +
+                "you can then start guessing for the word by typing guess \"letter/word you want to guess\"\n" +
+                "you can at any time quit the game by typing quit!";
     }
 }

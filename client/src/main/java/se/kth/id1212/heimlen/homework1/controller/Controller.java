@@ -1,5 +1,6 @@
 package se.kth.id1212.heimlen.homework1.controller;
 
+import se.kth.id1212.heimlen.homework1.model.OutputHandler;
 import se.kth.id1212.heimlen.homework1.model.ServerConnector;
 
 import java.io.IOException;
@@ -24,10 +25,10 @@ public class Controller {
      * @param host the hostname or ip adress to connect to
      * @param port the port to connect to
      */
-    public void connectToServer(String host, int port) {
+    public void connectToServer(String host, int port, OutputHandler outputHandler) {
         CompletableFuture.runAsync(() -> {
             try {
-                serverConnector.connectToServer(host, port);
+                serverConnector.connectToServer(host, port, outputHandler);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

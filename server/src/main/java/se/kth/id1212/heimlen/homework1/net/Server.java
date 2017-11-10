@@ -11,10 +11,8 @@ import java.net.SocketException;
  * The server that clients will connect to to play the hangman game.
  */
 public class Server {
-    private Controller controller;
     private int portNum = 51234;
     private static final int LINGER_TIME = 5000;
-    private static final int TIMEOUT_TIME = 30000;
 
     /**
      * Starts the server by starting a listening-socket on port defaulted in <code>portNum</code>. All clients connecting
@@ -30,7 +28,6 @@ public class Server {
     private void serve() {
         try {
             ServerSocket listeningSocket = new ServerSocket(portNum);
-            System.out.println("in serve method server class on server");
             while(true) {
                 Socket clientSocket = listeningSocket.accept();
                 startClientHandler(clientSocket);
@@ -46,6 +43,5 @@ public class Server {
         Thread clientThread = new Thread(clientHandler);
         clientThread.setPriority(Thread.MAX_PRIORITY);
         clientThread.start();
-        System.out.println("starting client in server class");
     }
 }

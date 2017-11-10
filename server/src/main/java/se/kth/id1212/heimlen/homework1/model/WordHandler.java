@@ -22,6 +22,7 @@ public class WordHandler {
     private String chosenWord;
     private int chosenWordLength;
     private String maskedWord;
+    private String outputMsg;
 
     public WordHandler() {
         //TODO randomly chose a word from a list of words.
@@ -40,7 +41,7 @@ public class WordHandler {
             BufferedReader reader = Files.newBufferedReader(Paths.get(PATH));
             randomWords = new ArrayList<>();
             while (reader.readLine() != null) {
-                randomWords.add(reader.readLine());
+                randomWords.add(reader.readLine().toLowerCase());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,14 +55,14 @@ public class WordHandler {
         triesRemaining = chosenWordLength;
     }
 
-        /**
+    /**
      * This method compares the users guess against the chosen chosenWord.
      * If chosen chosenWord contains users guess, return the updated layout of the chosenWord with the guess added.
      * If user guesses for the correct chosenWord, return updated layout and finish game.
      * If user guess is not in chosen chosenWord, decrement # of guesses and inform user.
      */
-    public void controlInput(String input) {
-        if (chosenWord.contains(input)) {
+    public String controlInput(String input) {
+        if (chosenWord.contains(input) && triesRemaining != 0) {
             if (input.length() == 1) {
                 char inputChar = input.charAt(0);
                 for (int i = 0; i < chosenWordLength; i++) {
@@ -69,43 +70,59 @@ public class WordHandler {
                         replaceAt(maskedWord, inputChar, i);
                     }
                 }
-                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining + " tries remain!");
-            } else if (input.length() == chosenWordLength && chosenWord.contains(input)) {
-                    System.out.println("Congratz, you found the chosen word " + chosenWord + " with " + triesRemaining + " tries left!");
+                outputMsg = createOutMsg();
+                if(chosenWord.equals(maskedWord)) {
+                    score++;
                     loadNewWord();
+                    outputMsg = createOutMsg();
                 }
-        } else {
-            if (input.length() == 1) {
-                --triesRemaining;
-                System.out.println("That character is not in the word!");
-                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining+ " tries remaining!");
-            } else {
-                --triesRemaining;
-                System.out.println("That was not the word searched for! " + triesRemaining + " tries remaining!");
-                System.out.println("The chosen word now looks like this " + maskedWord + " and " + triesRemaining+ " tries remaining!");
+                return outputMsg;
+            } else if (chosenWord.equals(input)) {
+                score++;
+                loadNewWord();
+                outputMsg = createOutMsg();
+                return outputMsg;
             }
+        } else if (triesRemaining != 0) {
+            triesRemaining--;
+            outputMsg = createOutMsg();
+                return outputMsg;
         }
-        if(triesRemaining == 0) {
-            System.out.println("Ah too bad, you ran out of tries, you should have entered " + chosenWord);
-            loadNewWord();
-        }
-
+        return zeroTriesLeft();
     }
+
     private void loadNewWord() {
         chooseWord();
         createMaskedWord();
-        System.out.println("You now have " + score + " points, and a new word has been added that looks like this " + maskedWord);
     }
 
     /**
      * Replaces character at <code>index</code> in <code>string</code> with <code>character</code>.
-     * @param string the string that is to be changed
+     *
+     * @param string  the string that is to be changed
      * @param newChar the character to add
-     * @param index the index where the character is to be replaced
+     * @param index   the index where the character is to be replaced
      */
     private void replaceAt(String string, char newChar, int index) {
         StringBuilder sb = new StringBuilder(string);
         sb.setCharAt(index, newChar);
         maskedWord = sb.toString();
+    }
+
+    private String createOutMsg() {
+        if(chosenWord.equals(maskedWord) || triesRemaining == 0) {
+            return "||  Masked Word  | Tries remaining | Score | Word ||\n" +
+                    "|| " + maskedWord + " | " + triesRemaining + " | " + score + " | " + chosenWord + " ||";
+        } else {
+            return "||  Masked Word  | Tries remaining | Score | Word ||\n" +
+                    "|| " + maskedWord + " | " + triesRemaining + " | " + score + " | " + "?" + " ||";
+        }
+    }
+
+    private String zeroTriesLeft() {
+            score--;
+            loadNewWord();
+            outputMsg = createOutMsg();
+            return outputMsg;
     }
 }

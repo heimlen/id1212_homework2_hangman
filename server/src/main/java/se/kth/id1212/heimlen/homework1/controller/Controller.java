@@ -13,8 +13,8 @@ public class Controller {
         wordhandler = new WordHandler();
     }
 
-    public void sendInput(String input) {
-        wordhandler.controlInput(input);
+    public String sendInput(String input) {
+       return wordhandler.controlInput(input);
     }
 
 }

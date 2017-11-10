@@ -30,6 +30,11 @@ public class ClientHandler implements Runnable {
         connected = true;
     }
 
+    /**
+     * Overrides the default run method in runnable. This method will when a client is connected read input from the client
+     * and deliver it to the server as well as read output from the server and deliver it to the client. This is the server
+     * side link between clients and server.
+     */
     @Override
     public void run() {
         try {
@@ -40,10 +45,10 @@ public class ClientHandler implements Runnable {
         }
         while (connected) {
             try {
-                //TODO SocketTimeoutException: Read timed out is thrown by the line below, figure out why and fix it!
-
                 String clientInput = fromClient.readLine();
-                controller.sendInput(clientInput);
+                String serverOutput = controller.sendInput(clientInput);
+                toClient.println(serverOutput);
+                toClient.flush();
             } catch (IOException e) {
                 disconnectClient();
                 e.printStackTrace();

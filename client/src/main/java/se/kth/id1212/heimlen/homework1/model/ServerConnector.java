@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
- * Method that connects the client to the server
+ * Class that handles client connection to server.
  * */
 public class ServerConnector {
     private Socket socket;
@@ -24,15 +24,14 @@ public class ServerConnector {
      * @param port the port to connect to
      * @throws IOException if fails to connect
      */
-    public void connectToServer(String host, int port) throws IOException {
-        System.out.println("in serverconnector");
+    public void connectToServer(String host, int port, OutputHandler outputHandler) throws IOException {
         socket = new Socket();
         socket.connect(new InetSocketAddress(host, port), TIMEOUT_20_SECONDS);
         socket.setSoTimeout(TIMEOUT_30_MINUTES);
         connected = true;
         streamFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         streamToServer = new PrintWriter(socket.getOutputStream());
-        //TODO Start a thread that contains a listener, that listens for incoming data from the server
+        new Thread(new Listener(outputHandler)).start();
     }
 
     /**
@@ -44,9 +43,32 @@ public class ServerConnector {
        streamToServer.flush();
     }
 
+    /**
+     * Disconnects the client from the server
+     * @throws IOException
+     */
     public void disconnect() throws IOException {
     socket.close();
     socket = null;
     connected = false;
+    }
+
+    private class Listener implements Runnable {
+        private final OutputHandler outputHandler;
+
+        private Listener(OutputHandler outputHandler) {
+            this.outputHandler = outputHandler;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for(;;) {
+                   outputHandler.printServerOutput(streamFromServer.readLine());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
