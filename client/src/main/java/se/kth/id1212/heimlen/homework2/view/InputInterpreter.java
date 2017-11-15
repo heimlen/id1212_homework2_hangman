@@ -1,11 +1,10 @@
-package se.kth.id1212.heimlen.homework1.view;
+package se.kth.id1212.heimlen.homework2.view;
 
-import se.kth.id1212.heimlen.homework1.controller.Controller;
-import se.kth.id1212.heimlen.homework1.exceptions.BadFormattedInputException;
-import se.kth.id1212.heimlen.homework1.exceptions.UnknownCommandException;
-import se.kth.id1212.heimlen.homework1.model.OutputHandler;
+import se.kth.id1212.heimlen.homework2.exceptions.BadFormattedInputException;
+import se.kth.id1212.heimlen.homework2.exceptions.UnknownCommandException;
+import se.kth.id1212.heimlen.homework2.model.OutputHandler;
+import se.kth.id1212.heimlen.homework2.model.ServerConnection;
 
-import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -16,7 +15,7 @@ public class InputInterpreter implements Runnable {
     private static final String PROMPT = "> ";
     private final Scanner clientInput = new Scanner(System.in);
     private boolean acceptingClientCommands = false;
-    private Controller controller;
+    private ServerConnection server;
     private final ThreadSafeStdOut msgOut = new ThreadSafeStdOut();
 
     /**
@@ -29,7 +28,7 @@ public class InputInterpreter implements Runnable {
         }
         System.out.println(welcomeMsg());
         acceptingClientCommands = true;
-        controller = new Controller();
+        server = new ServerConnection();
         new Thread(this).start();
     }
 
@@ -41,21 +40,18 @@ public class InputInterpreter implements Runnable {
                 switch(userInput.getUserCommand()) {
                     case QUIT :
                         acceptingClientCommands = false;
-                        controller.disconnect();
+                        //TODO add call to disconnect
                         break;
                     case CONNECT :
-                        controller.connectToServer(userInput.getFirstParam(),
-                                Integer.parseInt(userInput.getSecondParam()),
-                                new ServerOutput());
+                        server.connectToServer(userInput.getFirstParam(),
+                                Integer.parseInt(userInput.getSecondParam()));
                         break;
                     case GUESS :
-                        controller.sendInput(userInput.getFirstParam());
+                        server.sendClientInput(userInput.getFirstParam());
                         break;
                 }
             } catch (UnknownCommandException | BadFormattedInputException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                System.out.println("thanks for playing the game!");
             }
         }
     }

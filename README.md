@@ -1,5 +1,7 @@
-# id1212_homework1_hangman
-The first project called "hangman" in the course id1212
+# id1212_homework2_hangman
+The second homework in the id1212 course, which is a continuation on the previous project
+called id1212_homework_hangman
+
 
 
 How to run this program:

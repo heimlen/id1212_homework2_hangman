@@ -1,4 +1,4 @@
-package se.kth.id1212.heimlen.homework1.model;
+package se.kth.id1212.heimlen.homework2.model;
 
 /**
  * Handles messages from server that are to be outputted to the client

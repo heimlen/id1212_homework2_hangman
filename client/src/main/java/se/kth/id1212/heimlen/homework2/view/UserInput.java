@@ -1,9 +1,8 @@
-package se.kth.id1212.heimlen.homework1.view;
+package se.kth.id1212.heimlen.homework2.view;
 
-import se.kth.id1212.heimlen.homework1.exceptions.BadFormattedInputException;
-import se.kth.id1212.heimlen.homework1.exceptions.UnknownCommandException;
+import se.kth.id1212.heimlen.homework2.exceptions.BadFormattedInputException;
+import se.kth.id1212.heimlen.homework2.exceptions.UnknownCommandException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 /**

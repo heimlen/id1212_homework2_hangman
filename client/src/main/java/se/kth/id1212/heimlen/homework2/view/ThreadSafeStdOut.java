@@ -1,4 +1,4 @@
-package se.kth.id1212.heimlen.homework1.view;
+package se.kth.id1212.heimlen.homework2.view;
 
 /**
  * This class provides a thread safe output, all methods are synchronized.

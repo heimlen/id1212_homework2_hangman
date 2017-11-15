@@ -1,6 +1,6 @@
-package se.kth.id1212.heimlen.homework1.controller;
+package se.kth.id1212.heimlen.homework2.controller;
 
-import se.kth.id1212.heimlen.homework1.model.WordHandler;
+import se.kth.id1212.heimlen.homework2.model.WordHandler;
 
 /**
  * Controller on server side, all calls from clients to the server model pass through this layer to separate the

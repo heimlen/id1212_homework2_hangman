@@ -1,4 +1,4 @@
-package se.kth.id1212.heimlen.homework1.exceptions;
+package se.kth.id1212.heimlen.homework2.exceptions;
 
 /**
  * This exception is thrown if a user fails to enter a correctly formatted input.

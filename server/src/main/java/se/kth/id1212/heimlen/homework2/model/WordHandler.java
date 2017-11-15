@@ -1,4 +1,4 @@
-package se.kth.id1212.heimlen.homework1.model;
+package se.kth.id1212.heimlen.homework2.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -110,11 +110,9 @@ public class WordHandler {
 
     private String createOutMsg() {
         if(chosenWord.equals(maskedWord) || triesRemaining == 0) {
-            return "||  Masked Word  | Tries remaining | Score | Word ||\n" +
-                    "|| " + maskedWord + " | " + triesRemaining + " | " + score + " | " + chosenWord + " ||";
+            return "|| Masked : " + maskedWord + " | Tries Left : " + triesRemaining + " | Score : " + score + " | Searched : " + chosenWord + " ||";
         } else {
-            return "||  Masked Word  | Tries remaining | Score | Word ||\n" +
-                    "|| " + maskedWord + " | " + triesRemaining + " | " + score + " | " + "?" + " ||";
+            return "|| Masked : " + maskedWord + " | Tries Left : " + triesRemaining + " | Score : " + score + " | Searched : ? ||";
         }
     }
 

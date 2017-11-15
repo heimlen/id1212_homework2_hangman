@@ -1,4 +1,4 @@
-package se.kth.id1212.heimlen.homework1.view;
+package se.kth.id1212.heimlen.homework2.view;
 
 /**
  * Defines all commands that can be invoked by the client in the hangman game.
