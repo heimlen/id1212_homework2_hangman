@@ -2,9 +2,10 @@ package se.kth.id1212.heimlen.homework2.view;
 
 import se.kth.id1212.heimlen.homework2.exceptions.BadFormattedInputException;
 import se.kth.id1212.heimlen.homework2.exceptions.UnknownCommandException;
-import se.kth.id1212.heimlen.homework2.model.OutputHandler;
+import se.kth.id1212.heimlen.homework2.model.OutputObserver;
 import se.kth.id1212.heimlen.homework2.model.ServerConnection;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -40,9 +41,10 @@ public class InputInterpreter implements Runnable {
                 switch(userInput.getUserCommand()) {
                     case QUIT :
                         acceptingClientCommands = false;
-                        //TODO add call to disconnect
+                        server.disconnect();
                         break;
                     case CONNECT :
+                        server.addOutputHandler(new OutputHandler());
                         server.connectToServer(userInput.getFirstParam(),
                                 Integer.parseInt(userInput.getSecondParam()));
                         break;
@@ -50,7 +52,7 @@ public class InputInterpreter implements Runnable {
                         server.sendClientInput(userInput.getFirstParam());
                         break;
                 }
-            } catch (UnknownCommandException | BadFormattedInputException e) {
+            } catch (UnknownCommandException | BadFormattedInputException | IOException e) {
                 e.printStackTrace();
             }
         }
@@ -61,7 +63,7 @@ public class InputInterpreter implements Runnable {
         return clientInput.nextLine();
     }
 
-    private class ServerOutput implements OutputHandler {
+    private class OutputHandler implements OutputObserver {
         @Override
         public void printServerOutput(String output) {
             msgOut.println(output);

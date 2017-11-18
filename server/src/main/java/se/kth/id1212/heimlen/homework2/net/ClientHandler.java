@@ -5,6 +5,9 @@ import se.kth.id1212.heimlen.homework2.controller.Controller;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Manages a client connection.
@@ -14,6 +17,8 @@ public class ClientHandler implements Runnable {
     private final static int BUFFERSIZE = 2048;
     private Server server;
     private final ByteBuffer inputFromClient = ByteBuffer.allocateDirect(BUFFERSIZE);
+    private final Queue<String> inputReadyForHandling = new ArrayDeque<>();
+    private final Queue<ByteBuffer> outputReadyForClient = new ArrayDeque<>();
     private SocketChannel clientChannel;
     private boolean connected;
 
@@ -31,17 +36,17 @@ public class ClientHandler implements Runnable {
     }
 
     /**
-     * Receives and handles messages from the client.
+     * Sends client guesses to game-logic when it is ready to be handled.
      * */
     @Override
     public void run() {
-        try {
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        while (!inputReadyForHandling.isEmpty()) {
+            outputReadyForClient.add(ByteBuffer.wrap(controller.sendInput(inputReadyForHandling.remove()).getBytes()));
+            //System.out.println(controller.sendInput(inputReadyForHandling.remove()));
+            //TODO add some way to communicate back to view.
         }
-        while (connected) {
-            try {
+       /*     try {
                 String clientInput = fromClient.readLine();
                 String serverOutput = controller.sendInput(clientInput);
                 toClient.println(serverOutput);
@@ -50,14 +55,41 @@ public class ClientHandler implements Runnable {
                 disconnectClient();
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
-    void receiveMessage() {
+    void receiveInput() throws IOException {
+        inputFromClient.clear();
+        int numOfReadBytes;
+        numOfReadBytes = clientChannel.read(inputFromClient);
+        if(numOfReadBytes == -1) {
+            throw new IOException("Client has closed connection.");
+        }
+        String receivedInput = extractInputFromBuffer();
+        inputReadyForHandling.add(receivedInput);
+        System.out.println("This is what the server received : " + receivedInput);
+        ForkJoinPool.commonPool().execute(this);
+    }
 
+    private String extractInputFromBuffer() {
+        inputFromClient.flip();
+        byte[] bytes = new byte[inputFromClient.remaining()];
+        inputFromClient.get(bytes);
+        return new String(bytes); //This line actually decodes the bytes into a new string using the default charset, nice one!
     }
 
     private void disconnectClient() throws IOException {
         clientChannel.close();
+    }
+
+    void sendServerOutput() throws IOException {
+        //TODO add a way to send output form server back to client, this method should be called from the Server class
+        //if the key is set to readable.
+        while(!outputReadyForClient.isEmpty()) {
+            clientChannel.write(outputReadyForClient.remove());
+        }
+        /*if() {
+            throw new IOException("Could not send message");
+        }*/
     }
 }

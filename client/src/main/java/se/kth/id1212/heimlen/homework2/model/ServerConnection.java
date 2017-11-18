@@ -1,15 +1,17 @@
 package se.kth.id1212.heimlen.homework2.model;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 
 import static java.nio.channels.SelectionKey.OP_CONNECT;
 
@@ -17,12 +19,15 @@ import static java.nio.channels.SelectionKey.OP_CONNECT;
  * Class that handles client connection to server. All operations are non-blocking.
  * */
 public class ServerConnection implements Runnable {
+    //TODO Fråga teo om hur jag får in common och Constants i det här paketet
+    private final static int BUFFERSIZE = 2048;
     private InetSocketAddress serverAdress;
+    private final Queue<ByteBuffer> inputQueue = new ArrayDeque<>();
+    private final ByteBuffer outputFromServer = ByteBuffer.allocateDirect(BUFFERSIZE);
+    private final Queue<String> outputReadyForClient = new ArrayDeque<>();
+    private final List<OutputObserver> outputObservers = new ArrayList<>();
     private Selector selector;
     private SocketChannel socketChannel;
-    private final Queue<ByteBuffer> inputQueue = new ArrayDeque<>();
-    private BufferedReader streamFromServer;
-    private PrintWriter streamToServer;
     private boolean connected;
     private volatile boolean inputRdyToSend = false;
 
@@ -41,14 +46,15 @@ public class ServerConnection implements Runnable {
              selector.select(); //blocking select, waiting for the first select
              for(SelectionKey key : selector.selectedKeys()) {
                  selector.selectedKeys().remove(key);
-                //TODO ask Leif why if(!key.isValid()) is here in his code
-                 if(!key.isValid()) {
+                if(!key.isValid()) {
                      continue;
                  }
                  if(key.isConnectable()) {
                     completeConnection(key);
                  } else if(key.isWritable()) {
                      sendInputToServer(key);
+                 } else if(key.isReadable()) {
+                    receiveServerOutput(key);
                  }
              }
             }
@@ -114,31 +120,50 @@ public class ServerConnection implements Runnable {
         selector.wakeup();
     }
 
+    private void receiveServerOutput(SelectionKey key) throws IOException {
+        outputFromServer.clear();
+        int numOfReadBytes;
+        numOfReadBytes = socketChannel.read(outputFromServer);
+        if(numOfReadBytes == -1) {
+            throw new IOException("Error while receiving message.");
+        }
+        String receivedInput = extractOutputFromBuffer();
+        outputReadyForClient.add(receivedInput);
+        while(!outputReadyForClient.isEmpty()) {
+            sendServerOutput(outputReadyForClient.remove());
+        }
+    }
+
+    private String extractOutputFromBuffer() {
+        outputFromServer.flip();
+        byte[] bytes = new byte[outputFromServer.remaining()];
+        outputFromServer.get(bytes);
+        return new String(bytes); //This line actually decodes the bytes into a new string using the default charset, nice one!
+    }
+
     /**
      * Disconnects the client from the server
      * @throws IOException
      */
     public void disconnect() throws IOException {
-        //TODO write new functionality for disconnecting
-    connected = false;
+        socketChannel.close();
+        socketChannel.keyFor(selector).cancel();
+        connected = false;
+        System.out.println("disconnected");
     }
 
-    private class Listener implements Runnable {
-        private final OutputHandler outputHandler;
+    public void addOutputHandler(OutputObserver OutputObserver) {
+        outputObservers.add(OutputObserver);
+    }
 
-        private Listener(OutputHandler outputHandler) {
-            this.outputHandler = outputHandler;
-        }
-
-        @Override
-        public void run() {
-            try {
-                for(;;) {
-                   outputHandler.printServerOutput(streamFromServer.readLine());
+    private void sendServerOutput(String output) {
+        Executor pool = ForkJoinPool.commonPool();
+        for(OutputObserver observer : outputObservers) {
+            pool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    observer.printServerOutput(output);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+            });}
     }
 }

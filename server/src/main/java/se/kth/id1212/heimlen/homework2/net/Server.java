@@ -1,23 +1,24 @@
 package se.kth.id1212.heimlen.homework2.net;
 
-import com.sun.security.ntlm.Client;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.StandardSocketOptions;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayDeque;
 import java.util.Iterator;
+import java.util.Queue;
 
 /**
- * The server that clients will connect to to play the hangman game.
+ * The server that clients will connect to to play the hangman game. This is the first class on the server side that the client
+ * encounters, and therefore contains code to handle new clients connecting.
  */
 public class Server {
     private int portNum = 51234;
+    private static final int LINGER_TIME = 5000;
     private Selector selector;
     private ServerSocketChannel listeningSocketChannel;
     private volatile boolean clientReplyReady = false;
@@ -43,7 +44,6 @@ public class Server {
                     clientReplyReady = false;
                 }
                 selector.select(); //Blocking select operation, waiting for at least one client to connect.
-                //TODO why keep an iterator here, when using a for each loop on client side?
                 Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()) {
                     SelectionKey key = iterator.next();
@@ -54,9 +54,10 @@ public class Server {
                     if (key.isAcceptable()) {
                         startClientHandler(key);
                     } else if (key.isReadable()) {
-                        //TODO write code for reading input from client
+                        receiveInputFromClient(key);
                     } else if (key.isWritable()) {
                         //TODO write code to write output to client
+                        sendOutputToClient(key);
                     }
                 }
 
@@ -82,6 +83,37 @@ public class Server {
         SocketChannel clientChannel = serverSocketChannel.accept();
         clientChannel.configureBlocking(false);
         ClientHandler clientHandler = new ClientHandler(this,clientChannel);
-        clientChannel.register(selector, SelectionKey.OP_WRITE);
+        clientChannel.register(selector, SelectionKey.OP_READ, new Client(clientHandler));
+        clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
+    }
+
+    private void receiveInputFromClient(SelectionKey key) {
+        Client client = (Client) key.attachment();
+        try {
+            client.clientHandler.receiveInput();
+            key.interestOps(SelectionKey.OP_WRITE);
+        } catch (IOException clientHasClosedConnection) {
+         //   removeClient(key);
+        }
+
+    }
+
+    private void sendOutputToClient(SelectionKey key) {
+        Client client = (Client) key.attachment();
+        try {
+            client.clientHandler.sendServerOutput();
+            key.interestOps(SelectionKey.OP_READ);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class Client {
+        private final ClientHandler clientHandler;
+       // private final Queue<ByteBuffer> inputToHandle = new ArrayDeque<>();
+
+        private Client(ClientHandler clientHandler) {
+            this.clientHandler = clientHandler;
+        }
     }
 }
