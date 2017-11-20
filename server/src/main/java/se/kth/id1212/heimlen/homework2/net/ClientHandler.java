@@ -9,18 +9,17 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ForkJoinPool;
 
+import static se.kth.id1212.heimlen.homework2.Constants.BUFFERSIZE;
+
 /**
  * Manages a client connection.
  * */
 public class ClientHandler implements Runnable {
     private Controller controller;
-    private final static int BUFFERSIZE = 2048;
-    private Server server;
     private final ByteBuffer inputFromClient = ByteBuffer.allocateDirect(BUFFERSIZE);
     private final Queue<String> inputReadyForHandling = new ArrayDeque<>();
     private final Queue<ByteBuffer> outputReadyForClient = new ArrayDeque<>();
     private SocketChannel clientChannel;
-    private boolean connected;
 
     /**
      * Creates a new instance of <code>ClientHandler</code> that will manage the connection from a client connected via
@@ -30,9 +29,7 @@ public class ClientHandler implements Runnable {
      */
     ClientHandler(Server server, SocketChannel clientChannel) {
         controller = new Controller();
-        this.server = server;
         this.clientChannel = clientChannel;
-        connected = true;
     }
 
     /**
@@ -44,7 +41,6 @@ public class ClientHandler implements Runnable {
         while (!inputReadyForHandling.isEmpty()) {
             outputReadyForClient.add(ByteBuffer.wrap(controller.sendInput(inputReadyForHandling.remove()).getBytes()));
             //System.out.println(controller.sendInput(inputReadyForHandling.remove()));
-            //TODO add some way to communicate back to view.
         }
        /*     try {
                 String clientInput = fromClient.readLine();
@@ -58,6 +54,10 @@ public class ClientHandler implements Runnable {
         }*/
     }
 
+    /**
+     * Receive the input from the client, and then task a thread in the <code>ForkJoinPool</code> to handle the input.
+     * @throws IOException If failed to read message
+     */
     void receiveInput() throws IOException {
         inputFromClient.clear();
         int numOfReadBytes;
@@ -75,21 +75,29 @@ public class ClientHandler implements Runnable {
         inputFromClient.flip();
         byte[] bytes = new byte[inputFromClient.remaining()];
         inputFromClient.get(bytes);
-        return new String(bytes); //This line actually decodes the bytes into a new string using the default charset, nice one!
+        return new String(bytes);
     }
 
-    private void disconnectClient() throws IOException {
+    /**
+     * Closes the connection to the client.
+     * @throws IOException if closing the connection fails
+     */
+    void disconnectClient() throws IOException {
         clientChannel.close();
     }
 
+    /**
+     * Sends the servers output to the client.
+     * @throws IOException if failed to send message
+     */
     void sendServerOutput() throws IOException {
-        //TODO add a way to send output form server back to client, this method should be called from the Server class
         //if the key is set to readable.
         while(!outputReadyForClient.isEmpty()) {
-            clientChannel.write(outputReadyForClient.remove());
+            ByteBuffer output = outputReadyForClient.remove();
+            clientChannel.write(output);
+            if(output.hasRemaining()) {
+                return;
+            }
         }
-        /*if() {
-            throw new IOException("Could not send message");
-        }*/
     }
 }

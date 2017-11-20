@@ -39,10 +39,6 @@ public class Server {
             initListeningSocketChannel();
 
             while(true) {
-                if(clientReplyReady) {
-                    //TODO add functionality to send reply messages to client
-                    clientReplyReady = false;
-                }
                 selector.select(); //Blocking select operation, waiting for at least one client to connect.
                 Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                 while (iterator.hasNext()) {
@@ -56,7 +52,6 @@ public class Server {
                     } else if (key.isReadable()) {
                         receiveInputFromClient(key);
                     } else if (key.isWritable()) {
-                        //TODO write code to write output to client
                         sendOutputToClient(key);
                     }
                 }
@@ -87,15 +82,21 @@ public class Server {
         clientChannel.setOption(StandardSocketOptions.SO_LINGER, LINGER_TIME);
     }
 
-    private void receiveInputFromClient(SelectionKey key) {
+    private void receiveInputFromClient(SelectionKey key) throws IOException {
         Client client = (Client) key.attachment();
         try {
             client.clientHandler.receiveInput();
             key.interestOps(SelectionKey.OP_WRITE);
         } catch (IOException clientHasClosedConnection) {
-         //   removeClient(key);
+            removeClient(key);
         }
 
+    }
+
+    private void removeClient(SelectionKey clientKey) throws IOException {
+        Client client = (Client) clientKey.attachment();
+        client.clientHandler.disconnectClient();
+        clientKey.cancel();
     }
 
     private void sendOutputToClient(SelectionKey key) {
@@ -110,7 +111,6 @@ public class Server {
 
     private class Client {
         private final ClientHandler clientHandler;
-       // private final Queue<ByteBuffer> inputToHandle = new ArrayDeque<>();
 
         private Client(ClientHandler clientHandler) {
             this.clientHandler = clientHandler;

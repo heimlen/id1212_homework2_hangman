@@ -14,14 +14,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 import static java.nio.channels.SelectionKey.OP_CONNECT;
+import static se.kth.id1212.heimlen.homework2.Constants.BUFFERSIZE;
 
 /**
  * Class that handles client connection to server. All operations are non-blocking.
  * */
 public class ServerConnection implements Runnable {
-    //TODO Fråga teo om hur jag får in common och Constants i det här paketet
-    private final static int BUFFERSIZE = 2048;
-    private InetSocketAddress serverAdress;
+    private InetSocketAddress serverAddress;
     private final Queue<ByteBuffer> inputQueue = new ArrayDeque<>();
     private final ByteBuffer outputFromServer = ByteBuffer.allocateDirect(BUFFERSIZE);
     private final Queue<String> outputReadyForClient = new ArrayDeque<>();
@@ -70,7 +69,7 @@ public class ServerConnection implements Runnable {
      * @param port the port to connect to
      */
     public void connectToServer(String host, int port){
-        serverAdress = new InetSocketAddress(host, port);
+        serverAddress = new InetSocketAddress(host, port);
         new Thread(this).start();
     }
 
@@ -82,7 +81,7 @@ public class ServerConnection implements Runnable {
     private void initConnection() throws IOException {
         socketChannel = SocketChannel.open();
         socketChannel.configureBlocking(false);
-        socketChannel.connect(serverAdress);
+        socketChannel.connect(serverAddress);
         connected = true;
     }
 
@@ -132,6 +131,7 @@ public class ServerConnection implements Runnable {
         while(!outputReadyForClient.isEmpty()) {
             sendServerOutput(outputReadyForClient.remove());
         }
+        key.interestOps(SelectionKey.OP_WRITE);
     }
 
     private String extractOutputFromBuffer() {
@@ -143,7 +143,7 @@ public class ServerConnection implements Runnable {
 
     /**
      * Disconnects the client from the server
-     * @throws IOException
+     * @throws IOException if failed to disconnect
      */
     public void disconnect() throws IOException {
         socketChannel.close();
@@ -159,11 +159,6 @@ public class ServerConnection implements Runnable {
     private void sendServerOutput(String output) {
         Executor pool = ForkJoinPool.commonPool();
         for(OutputObserver observer : outputObservers) {
-            pool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    observer.printServerOutput(output);
-                }
-            });}
+            pool.execute(() -> observer.printServerOutput(output));}
     }
 }
