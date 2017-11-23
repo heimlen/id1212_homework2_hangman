@@ -85,8 +85,7 @@ public class Server {
     private void receiveInputFromClient(SelectionKey key) throws IOException {
         Client client = (Client) key.attachment();
         try {
-            client.clientHandler.receiveInput();
-            key.interestOps(SelectionKey.OP_WRITE);
+            client.clientHandler.receiveInput(key);
         } catch (IOException clientHasClosedConnection) {
             removeClient(key);
         }
@@ -107,6 +106,13 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Wakes the selector of the server up.
+     */
+    void wakeUp() {
+        selector.wakeup();
     }
 
     private class Client {

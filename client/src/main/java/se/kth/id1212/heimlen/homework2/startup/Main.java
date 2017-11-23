@@ -10,14 +10,4 @@ public class Main {
     public static void main(String[] args) {
         new InputInterpreter().start();
     }
-
-        /*
-        String s = "hello";
-        String c = "hel lo";
-
-        if(s.contains(c)) {
-            System.out.println("The String " + s + " contains " + c + " :D");
-        } else {
-            System.out.println("The String " + s + " does not contain " + c + " :(");
-        }*/
-    }
+}

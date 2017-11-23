@@ -7,8 +7,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
@@ -24,7 +22,7 @@ public class ServerConnection implements Runnable {
     private final Queue<ByteBuffer> inputQueue = new ArrayDeque<>();
     private final ByteBuffer outputFromServer = ByteBuffer.allocateDirect(BUFFERSIZE);
     private final Queue<String> outputReadyForClient = new ArrayDeque<>();
-    private final List<OutputObserver> outputObservers = new ArrayList<>();
+    private OutputObserver outputObserver;
     private Selector selector;
     private SocketChannel socketChannel;
     private boolean connected;
@@ -53,7 +51,7 @@ public class ServerConnection implements Runnable {
                  } else if(key.isWritable()) {
                      sendInputToServer(key);
                  } else if(key.isReadable()) {
-                    receiveServerOutput(key);
+                    receiveServerOutput();
                  }
              }
             }
@@ -88,6 +86,12 @@ public class ServerConnection implements Runnable {
     private void completeConnection(SelectionKey key) throws IOException {
         socketChannel.finishConnect();
         key.interestOps(SelectionKey.OP_READ);
+        try {
+            InetSocketAddress remoteAddress = (InetSocketAddress) socketChannel.getRemoteAddress();
+            notifyConnectionDone(remoteAddress);
+        } catch (IOException couldNotGetRemAddrUsingDefaultInstead) {
+            notifyConnectionDone(serverAddress);
+        }
     }
     /**
      * Iterates over user-input in the <code>inputQueue</code> which is to be sent to the server, and sends this input to server.
@@ -119,7 +123,7 @@ public class ServerConnection implements Runnable {
         selector.wakeup();
     }
 
-    private void receiveServerOutput(SelectionKey key) throws IOException {
+    private void receiveServerOutput() throws IOException {
         outputFromServer.clear();
         int numOfReadBytes;
         numOfReadBytes = socketChannel.read(outputFromServer);
@@ -131,7 +135,6 @@ public class ServerConnection implements Runnable {
         while(!outputReadyForClient.isEmpty()) {
             sendServerOutput(outputReadyForClient.remove());
         }
-        key.interestOps(SelectionKey.OP_WRITE);
     }
 
     private String extractOutputFromBuffer() {
@@ -149,16 +152,26 @@ public class ServerConnection implements Runnable {
         socketChannel.close();
         socketChannel.keyFor(selector).cancel();
         connected = false;
-        System.out.println("disconnected");
+        notifyDisconnectionDone();
+
     }
 
-    public void addOutputHandler(OutputObserver OutputObserver) {
-        outputObservers.add(OutputObserver);
+    public void addOutputHandler(OutputObserver outputObserver) {
+        this.outputObserver = outputObserver;
     }
 
     private void sendServerOutput(String output) {
         Executor pool = ForkJoinPool.commonPool();
-        for(OutputObserver observer : outputObservers) {
-            pool.execute(() -> observer.printServerOutput(output));}
+        pool.execute(() -> outputObserver.printToTerminal(output));
     }
+
+    private void notifyConnectionDone(InetSocketAddress address) {
+        Executor pool = ForkJoinPool.commonPool();
+        pool.execute(() -> outputObserver.connected(address));
+    }
+
+    private void notifyDisconnectionDone() {
+        Executor pool = ForkJoinPool.commonPool();
+        pool.execute(() -> outputObserver.disconnected());}
+
 }

@@ -6,6 +6,7 @@ import se.kth.id1212.heimlen.homework2.model.OutputObserver;
 import se.kth.id1212.heimlen.homework2.model.ServerConnection;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Scanner;
 
 /**
@@ -65,10 +66,20 @@ public class InputInterpreter implements Runnable {
 
     private class OutputHandler implements OutputObserver {
         @Override
-        public void printServerOutput(String output) {
+        public void printToTerminal(String output) {
             msgOut.println(output);
             msgOut.print(PROMPT);
 
+        }
+
+        @Override
+        public void connected(InetSocketAddress address) {
+            printToTerminal("Connected to " + address.getHostName() + ":" + address.getPort());
+        }
+
+        @Override
+        public void disconnected() {
+            printToTerminal("Game is closing, thanks for playing!");
         }
     }
 

@@ -4,6 +4,7 @@ import se.kth.id1212.heimlen.homework2.controller.Controller;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -20,6 +21,8 @@ public class ClientHandler implements Runnable {
     private final Queue<String> inputReadyForHandling = new ArrayDeque<>();
     private final Queue<ByteBuffer> outputReadyForClient = new ArrayDeque<>();
     private SocketChannel clientChannel;
+    private SelectionKey key;
+    private Server server;
 
     /**
      * Creates a new instance of <code>ClientHandler</code> that will manage the connection from a client connected via
@@ -28,6 +31,7 @@ public class ClientHandler implements Runnable {
      * @param clientChannel the channel with which the client is connected.
      */
     ClientHandler(Server server, SocketChannel clientChannel) {
+        this.server = server;
         controller = new Controller();
         this.clientChannel = clientChannel;
     }
@@ -40,25 +44,16 @@ public class ClientHandler implements Runnable {
 
         while (!inputReadyForHandling.isEmpty()) {
             outputReadyForClient.add(ByteBuffer.wrap(controller.sendInput(inputReadyForHandling.remove()).getBytes()));
-            //System.out.println(controller.sendInput(inputReadyForHandling.remove()));
-        }
-       /*     try {
-                String clientInput = fromClient.readLine();
-                String serverOutput = controller.sendInput(clientInput);
-                toClient.println(serverOutput);
-                toClient.flush();
-            } catch (IOException e) {
-                disconnectClient();
-                e.printStackTrace();
-            }
-        }*/
+            readyForWrite();
+         }
     }
 
     /**
      * Receive the input from the client, and then task a thread in the <code>ForkJoinPool</code> to handle the input.
      * @throws IOException If failed to read message
      */
-    void receiveInput() throws IOException {
+    void receiveInput(SelectionKey key) throws IOException {
+        this.key = key;
         inputFromClient.clear();
         int numOfReadBytes;
         numOfReadBytes = clientChannel.read(inputFromClient);
@@ -69,6 +64,11 @@ public class ClientHandler implements Runnable {
         inputReadyForHandling.add(receivedInput);
         System.out.println("This is what the server received : " + receivedInput);
         ForkJoinPool.commonPool().execute(this);
+    }
+
+    private void readyForWrite() {
+        key.interestOps(SelectionKey.OP_WRITE);
+        server.wakeUp();
     }
 
     private String extractInputFromBuffer() {
